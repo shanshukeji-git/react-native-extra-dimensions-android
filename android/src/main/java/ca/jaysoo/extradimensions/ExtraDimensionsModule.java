@@ -3,6 +3,7 @@ package ca.jaysoo.extradimensions;
 import java.lang.Math;
 import java.lang.reflect.InvocationTargetException;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.util.DisplayMetrics;
@@ -11,6 +12,7 @@ import android.provider.Settings;
 import android.content.res.Resources;
 import android.view.WindowManager;
 import android.view.ViewConfiguration;
+import android.graphics.Rect;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -21,11 +23,68 @@ import java.util.HashMap;
 import java.util.Map;
 
 import java.lang.reflect.Field;
+import android.graphics.Point;
 
 public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     private ReactContext mReactContext;
+    /**
+     * 活动屏幕信息
+     */
+    private static WindowManager wm;
+    /**
+     * 获取真实屏幕高度
+     *
+     * @return
+     */
+    private int getRealHeight2() {
+        if (null == wm) {
+            wm = (WindowManager)mReactContext.getSystemService(Context.WINDOW_SERVICE);
+        }
+        Point point = new Point();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            wm.getDefaultDisplay().getRealSize(point);
+        } else {
+            wm.getDefaultDisplay().getSize(point);
+        }
+        return point.y;
+    }
 
+    private int getStatusBarHeight2() {
+        int result = 0;
+        int resourceId = mReactContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = mReactContext.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
+    private boolean isShowNavBar() {
+    
+        /**
+         * 获取应用区域高度
+         */
+        Rect rect111 = new Rect();
+        getCurrentActivity().getWindow().getDecorView().getWindowVisibleDisplayFrame(rect111);
+        int activityHeight = rect111.height();
+        /**
+         * 获取状态栏高度
+         */
+        int statuBarHeight = getStatusBarHeight2();
+        /**
+         * 屏幕物理高度 减去 状态栏高度
+         */
+        int remainHeight = getRealHeight2() - statuBarHeight;
+        /**
+         * 剩余高度跟应用区域高度相等 说明导航栏没有显示 否则相反
+         */
+        if (activityHeight == remainHeight) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
     public ExtraDimensionsModule(ReactApplicationContext reactContext) {
         super(reactContext);
         mReactContext = reactContext;
@@ -80,6 +139,7 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         constants.put("SOFT_MENU_BAR_HEIGHT", getSoftMenuBarHeight(metrics));
         constants.put("SMART_BAR_HEIGHT", getSmartBarHeight(metrics));
         constants.put("SOFT_MENU_BAR_ENABLED", hasPermanentMenuKey());
+        constants.put("IS_SHOW_BAR", isShowNavBar());
 
         return constants;
     }

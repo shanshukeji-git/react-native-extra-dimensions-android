@@ -1,14 +1,14 @@
 import { NativeModules, Platform } from 'react-native';
-
+var a = 1;
 export function get(dim) {
   if (Platform.OS !== 'android') {
-
     console.warn('react-native-extra-dimensions-android is only available on Android. Trying to access', dim);
     return 0;
-  } else { // android
+  } else {
+    // android
     try {
       if (!NativeModules.ExtraDimensions) {
-        throw "ExtraDimensions not defined. Try rebuilding your project. e.g. react-native run-android";
+        throw 'ExtraDimensions not defined. Try rebuilding your project. e.g. react-native run-android';
       }
       const result = NativeModules.ExtraDimensions[dim];
 
@@ -45,6 +45,9 @@ export function getSmartBarHeight() {
 export function isSoftMenuBarEnabled() {
   return get('SOFT_MENU_BAR_ENABLED');
 }
+export function isShowNavBar() {
+  return get('IS_SHOW_BAR');
+}
 
 // stay compatible with pre-es6 exports
 export default {
@@ -54,5 +57,6 @@ export default {
   getStatusBarHeight,
   getSoftMenuBarHeight,
   getSmartBarHeight,
-  isSoftMenuBarEnabled
-}
+  isSoftMenuBarEnabled,
+  isShowNavBar,
+};
